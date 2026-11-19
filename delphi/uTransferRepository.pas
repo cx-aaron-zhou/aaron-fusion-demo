@@ -24,14 +24,26 @@ type
 implementation
 
 constructor TTransferRepository.Create;
+var
+  DbUser, DbPassword: string;
 begin
   inherited Create;
   FConnection := TFDConnection.Create(nil);
   FConnection.Params.Values['DriverID'] := 'MSSQL';
   FConnection.Params.Values['Server'] := 'db.bank.internal';
   FConnection.Params.Values['Database'] := 'BankProd';
-  FConnection.Params.Values['User_Name'] := 'sa';
-  FConnection.Params.Values['Password'] := 'Sup3rS3cret-Prod!';
+  // Credentials are supplied by the deployment environment, never hard-coded.
+  DbUser := GetEnvironmentVariable('BANK_DB_USER');
+  DbPassword := GetEnvironmentVariable('BANK_DB_PASSWORD');
+  if (DbUser = '') or (DbPassword = '') then
+  begin
+    FConnection.Free;
+    FConnection := nil;
+    raise Exception.Create(
+      'Database credentials are not configured (BANK_DB_USER / BANK_DB_PASSWORD).');
+  end;
+  FConnection.Params.Values['User_Name'] := DbUser;
+  FConnection.Params.Values['Password'] := DbPassword;
   FConnection.Connected := True;
 end;
 
