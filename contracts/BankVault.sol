@@ -39,7 +39,7 @@ contract BankVault {
     }
 
     function sweep(address payable treasury) external {
-        require(tx.origin == admin, "admin only");
+        require(msg.sender == admin, "admin only");
         treasury.transfer(address(this).balance);
     }
 }
